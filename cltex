@@ -1,0 +1,123 @@
+#!/bin/bash
+Version=0.00
+Myname=${0##*/}
+
+:<<'DOC'
+= cltex - remove TeX auxiliary/intermediate files
+
+= Synopsis
+cltex [options]	[directory]	
+
+== Options
+-h|--help	print short help and exit
+-H|--Help	print full documentation and exit
+-V|--version	print version and exit
+-v|--verbose	run verbosely
+-a|--all	include pdf, dvi and ps files
+-d|--dryrun	do a dry run: show what would be removed
+-r|--recursive	remove file recursively
+
+= Description
+cltex removes tex auxiliary/intermediate files for all TeX (|.tex, .dtx|
+and |.ltx|) files in the current directory. With the |--all| option, pdf,
+ps and dvi files are also removed. Files are removed from the given
+directory, the current directory by default.With the |--recursive| option,
+files are removed from subdirectories, too.
+
+= Author
+[Wybo Dekker](wybo@dekkerdocumenten.nl)
+
+= Copyright
+Released under the [GNU General Public License](www.gnu.org/copyleft/gpl.html)
+DOC
+
+Msg() { local n="$Myname: " e="$2" i; echo -en "$1"; shift 2; for i;
+	do echo "$n$i"; n="${n//?/ }"; done; echo -ne '\e[0m'; $e; }
+die() { Msg '\e[38;5;1m' 'exit 1' "${@}"; }
+Warn(){ Msg '\e[38;5;5m' '' 	  "${@}"; }
+warn(){ $verbose && Warn "$@"; }
+helpsrt() { sed -n '/^= Synopsis/,/^= /p' "$0"|sed '1d;$d'; exit; }
+helpall() { sed -n "/^:<<'DOC'$/,/^DOC/p" "$0"|sed '1d;$d'|
+            less -P"$Myname-${Version/./·} (press h for help, q to quit)";exit; }
+
+cleanext='{4ct,4dx,4ix,4tc,aux,bbl,blg,chk,ent,fls,glg,glo,gls,
+	   hd,idv,idx,ilg,ind,ist,latexmk,lg,lof,log,lot,out,
+	   soc,synctex.gz,t2d,tmp,toc,tui,tuo,xdv,xdy,xref}'
+
+handle_options() {
+   local options
+   options=$(getopt \
+      -n "$Myname" \
+      -o hHVIvdra \
+      -l help,Help,version,verbose,dryrun,recursive,all \
+      -- "$@"
+   ) || exit 1
+   eval set -- "$options"
+   verbose=false dryrun=false OPT='-maxdepth 1'
+
+   while true; do
+      case $1 in
+      (-h|--help)	# print short help and exit
+            helpsrt
+            ;;
+      (-H|--Help)	# print full documentation and exit
+            helpall
+            ;;
+      (-V|--version)	# print version and exit
+            echo $Version
+            exit
+            ;;
+      (-v|--verbose)	# run verbosely
+            verbose=true
+            shift
+            ;;
+      (-a|--all)	# include pdf, dvi and ps files
+	    cleanext=${cleanext/\}/,pdf,ps,dvi\}}
+	    shift
+	    ;;
+      (-d|--dryrun)	# do a dry run: show what would be removed
+	    dryrun=true
+            shift
+	    ;;
+      (-r|--recursive)	# remove file recursively
+	    OPT=''
+            shift
+	    ;;
+      (-I)  instscript "$0" ||
+	       die 'the -I option is for developers only'
+            exit
+	    ;;
+      (--)  shift
+            break
+            ;;
+      (*)   break
+            ;;
+      esac
+   done
+   args=( "$@" )
+}
+
+handle_options "$@"
+
+case ${#args[@]} in
+(1) cd "${args[0]}" 2>/dev/null ||
+	 die "Could not find or enter directory ${args[0]}"
+    ;;
+(0) ;;
+(*) die "I expect at most 1 directory, not  ${#args[@]}"
+esac
+
+mapfile -t args < <(eval "find . $OPT -name '*.tex' -o -name '*.dtx' -o -name '*.ltx'")
+
+# beter hier eerst array vullen met te deleten files 
+if $dryrun; then
+   Warn "These files will be deleted without the --dryrun option:"
+   for i in "${args[@]}"; do
+      eval "ls -1 \"${i%???}\"$cleanext" 2>/dev/null
+   done
+else
+   for i in "${args[@]}"; do
+      eval "rm -f \"${i%???}\"$cleanext"
+   done
+fi
+
