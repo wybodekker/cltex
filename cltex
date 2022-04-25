@@ -15,7 +15,7 @@ cltex [options]	[directory]
 -v|--verbose	run verbosely
 -a|--all	include pdf, dvi and ps files
 -d|--dryrun	do a dry run: show what would be removed
--r|--recursive	remove file recursively
+-r|--recursive	remove files recursively
 
 = Description
 cltex removes tex auxiliary/intermediate files for all TeX (|.tex, .dtx|
@@ -31,18 +31,18 @@ files are removed from subdirectories, too.
 Released under the [GNU General Public License](www.gnu.org/copyleft/gpl.html)
 DOC
 
-Msg() { local n="$Myname: " e="$2" i; echo -en "$1"; shift 2; for i;
-	do echo "$n$i"; n="${n//?/ }"; done; echo -ne '\e[0m'; $e; }
-die() { Msg '\e[38;5;1m' 'exit 1' "${@}"; }
-Warn(){ Msg '\e[38;5;5m' '' 	  "${@}"; }
-warn(){ $verbose && Warn "$@"; }
+REd='\e[38;5;1m' Mag='\e[38;5;5m' Nor='\e[0m'
+    die() { local i; for i; do echo -e "$Myname: $REd$i$Nor"; done 1>&2; exit 1; }
+   Warn() { local i; for i; do echo -e "$Myname: $Mag$i$Nor"; done 1>&2; }
+   warn() { $verbose && Warn "$@"; }
 helpsrt() { sed -n '/^= Synopsis/,/^= /p' "$0"|sed '1d;$d'; exit; }
 helpall() { sed -n "/^:<<'DOC'$/,/^DOC/p" "$0"|sed '1d;$d'|
             less -P"$Myname-${Version/./·} (press h for help, q to quit)";exit; }
 
-cleanext='{4ct,4dx,4ix,4tc,aux,bbl,blg,chk,ent,fls,glg,glo,gls,
-	   hd,idv,idx,ilg,ind,ist,latexmk,lg,lof,log,lot,out,
-	   soc,synctex.gz,t2d,tmp,toc,tui,tuo,xdv,xdy,xref}'
+cleanext='{4ct,4dx,4ix,4tc,aux,bbl,blg,chk,ent,fls,glg,glo,gls,hd,idv,idx,ilg,
+           ind,ist,fdb_latexmk,latexmk,lg,lof,log,lot,out,soc,synctex.gz,t2d,
+           tmp,toc,tui,tuo,xdv,xdy,xref
+	  }'
 
 handle_options() {
    local options
