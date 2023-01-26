@@ -1,5 +1,5 @@
 #!/bin/bash
-Version=0.00
+Version=0.01
 Myname=${0##*/}
 
 :<<'DOC'
@@ -39,10 +39,9 @@ helpsrt() { sed -n '/^= Synopsis/,/^= /p' "$0"|sed '1d;$d'; exit; }
 helpall() { sed -n "/^:<<'DOC'$/,/^DOC/p" "$0"|sed '1d;$d'|
             less -P"$Myname-${Version/./·} (press h for help, q to quit)";exit; }
 
-cleanext='{4ct,4dx,4ix,4tc,aux,bbl,blg,chk,ent,fls,glg,glo,gls,hd,idv,idx,ilg,
-           ind,ist,fdb_latexmk,latexmk,lg,lof,log,lot,out,soc,synctex.gz,t2d,
-           tmp,toc,tui,tuo,xdv,xdy,xref
-	  }'
+cleanext='{4ct,4dx,4ix,4tc,aux,bbl,blg,chk,ent,fls,glg,glo,gls,hd,idv,idx,\
+ilg,ind,ist,fdb_latexmk,latexmk,lg,lof,log,lot,out,soc,synctex.gz,t2d,tmp,\
+toc,tuc,tui,tuo,xdv,xdy,xref}'
 
 handle_options() {
    local options
@@ -117,7 +116,7 @@ if $dryrun; then
    done
 else
    for i in "${args[@]}"; do
-      eval "rm -f \"${i%???}\"$cleanext"
+      eval "rm -rf \"${i%???}\"$cleanext"
    done
 fi
 
