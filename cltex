@@ -1,5 +1,5 @@
 #!/bin/bash
-Version=0.01
+Version=0.02
 Myname=${0##*/}
 
 :<<'DOC'
@@ -25,7 +25,7 @@ directory, the current directory by default.With the |--recursive| option,
 files are removed from subdirectories, too.
 
 = Author
-[Wybo Dekker](wybo@dekkerdocumenten.nl)
+[Wybo Dekker](wybodekker@me.com)
 
 = Copyright
 Released under the [GNU General Public License](www.gnu.org/copyleft/gpl.html)
