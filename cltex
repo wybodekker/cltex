@@ -9,13 +9,13 @@ Myname=${0##*/}
 cltex [options]	[directory]	
 
 == Options
--h|--help	print short help and exit
--H|--Help	print full documentation and exit
--V|--version	print version and exit
--v|--verbose	run verbosely
--a|--all	include pdf, dvi and ps files
--d|--dryrun	do a dry run: show what would be removed
--r|--recursive	remove files recursively
+-h,--help	print short help and exit
+-H,--Help	print full documentation and exit
+-V,--version	print version and exit
+-v,--verbose	run verbosely
+-a,--all	include pdf, dvi and ps files
+-d,--dryrun	do a dry run: show what would be removed
+-r,--recursive	remove files recursively
 
 = Description
 cltex removes tex auxiliary/intermediate files for all TeX (|.tex, .dtx|
@@ -30,92 +30,97 @@ files are removed from subdirectories, too.
 = Copyright
 Released under the [GNU General Public License](www.gnu.org/copyleft/gpl.html)
 DOC
+# --- colors ---------------------------------------------------------------
+Red='' Mag='' Nor='' nv="$Myname-${Version/./\\.} (press h for help, q to quit)"
+[ -t 1 ] && command -v tput >/dev/null && (( $(tput colors) >= 8 )) && { 
+  Red=$(tput bold && tput setaf 1) 
+  Mag=$(tput bold && tput setaf 5) 
+  Nor=$(tput sgr0)
+} 
 
-REd='\e[38;5;1m' Mag='\e[38;5;5m' Nor='\e[0m'
-    die() { local i; for i; do echo -e "$Myname: $REd$i$Nor"; done 1>&2; exit 1; }
-   Warn() { local i; for i; do echo -e "$Myname: $Mag$i$Nor"; done 1>&2; }
+# --- utils ----------------------------------------------------------------
+    die() { local i; for i; do echo -e "$Myname: $Red$i$Nor"; done >&2; exit 1; } 
+   Warn() { local i; for i; do echo -e "$Myname: $Mag$i$Nor"; done >&2; } 
    warn() { $verbose && Warn "$@"; }
-helpsrt() { sed -n '/^= Synopsis/,/^= /p' "$0"|sed '1d;$d'; exit; }
-helpall() { sed -n "/^:<<'DOC'$/,/^DOC/p" "$0"|sed '1d;$d'|
-            less -P"$Myname-${Version/./·} (press h for help, q to quit)";exit; }
+
+# --- help from embedded doc ----------------------------------------------
+helpsrt() { sed -n '/^= Synopsis/,/^= /p' "$0"|sed '1d;$d'; exit; } 
+helpall() { sed -n "/^:<<'DOC'$/,/^DOC/p" "$0"|sed '1d;$d'| less -P"$nv"; exit; }
 
 cleanext='{4ct,4dx,4ix,4tc,aux,bbl,blg,chk,ent,fls,glg,glo,gls,hd,idv,idx,\
 ilg,ind,ist,fdb_latexmk,latexmk,lg,lof,log,lot,out,soc,synctex.gz,t2d,tmp,\
 toc,tuc,tui,tuo,xdv,xdy,xref}'
 
-handle_options() {
-   local options
-   options=$(getopt \
+options=$(getopt \
       -n "$Myname" \
       -o hHVIvdra \
       -l help,Help,version,verbose,dryrun,recursive,all \
       -- "$@"
    ) || exit 1
-   eval set -- "$options"
-   verbose=false dryrun=false OPT='-maxdepth 1'
+eval set -- "$options"
+verbose=false dryrun=false OPT='-maxdepth 1'
 
-   while true; do
-      case $1 in
-      (-h|--help)	# print short help and exit
-            helpsrt
-            ;;
-      (-H|--Help)	# print full documentation and exit
-            helpall
-            ;;
-      (-V|--version)	# print version and exit
-            echo $Version
-            exit
-            ;;
-      (-v|--verbose)	# run verbosely
-            verbose=true
-            shift
-            ;;
-      (-a|--all)	# include pdf, dvi and ps files
-	    cleanext=${cleanext/\}/,pdf,ps,dvi\}}
-	    shift
-	    ;;
-      (-d|--dryrun)	# do a dry run: show what would be removed
-	    dryrun=true
-            shift
-	    ;;
-      (-r|--recursive)	# remove file recursively
-	    OPT=''
-            shift
-	    ;;
-      (-I)  instscript "$0" ||
-	       die 'the -I option is for developers only'
-            exit
-	    ;;
-      (--)  shift
-            break
-            ;;
-      (*)   break
-            ;;
-      esac
-   done
-   args=( "$@" )
-}
+while true; do
+   case $1 in
+   (-h|--help)	# print short help and exit
+         helpsrt
+         ;;
+   (-H|--Help)	# print full documentation and exit
+         helpall
+         ;;
+   (-V|--version)	# print version and exit
+         echo $Version
+         exit
+         ;;
+   (-v|--verbose)	# run verbosely
+         verbose=true
+         shift
+         ;;
+   (-a|--all)	# include pdf, dvi and ps files
+         cleanext=${cleanext/\}/,pdf,ps,dvi\}}
+         shift
+         ;;
+   (-d|--dryrun)	# do a dry run: show what would be removed
+         dryrun=true
+         shift
+         ;;
+   (-r|--recursive)	# remove file recursively
+         OPT=''
+         shift
+         ;;
+   (-I)  instscript "$0" ||
+            die 'the -I option is for developers only'
+         exit
+         ;;
+   (--)  shift
+         break
+         ;;
+   (*)   break
+         ;;
+   esac
+done
 
-handle_options "$@"
-
-case ${#args[@]} in
-(1) cd "${args[0]}" 2>/dev/null ||
-	 die "Could not find or enter directory ${args[0]}"
+dir=.
+case $# in
+(1) dir="$1"
+    cd "$1" 2>/dev/null ||
+	 die "Could not find or enter directory $1"
     ;;
 (0) ;;
-(*) die "I expect at most 1 directory, not  ${#args[@]}"
+(*) die "I expect at most 1 directory, not  $1"
 esac
 
-mapfile -t args < <(eval "find . $OPT -name '*.tex' -o -name '*.dtx' -o -name '*.ltx'")
+# tex sources to be cleaned:
+set -- $(eval "find . $OPT -name '*.tex' -o -name '*.dtx' -o -name '*.ltx'")
 
 # beter hier eerst array vullen met te deleten files 
 if $dryrun; then
    Warn "These files will be deleted without the --dryrun option:"
-   for i in "${args[@]}"; do
+   for i in "$@"; do
       eval "ls -1 \"${i%???}\"$cleanext" 2>/dev/null
-   done
+   done |sed "s=^\.=$dir="
 else
-   for i in "${args[@]}"; do
+   for i in "$@"; do
       eval "rm -rf \"${i%???}\"$cleanext"
    done
 fi
