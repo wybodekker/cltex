@@ -11,15 +11,15 @@ remove TeX auxiliary/intermediate files
 |    type:|bash|
 |  author:|Wybo Dekker|
 |   email:|[wybodekker@me.com](mailto:wybodekker@me.com)|
-| version:|0.02|
+| version:|0.03|
 | license:|GNU General Public License|
-|   intro:|cltex removes tex auxiliary/intermediate files for all|
-|         |TeX (|.tex, .dtx| and **.ltx**) files in the current|
-|         |directory. With the **--all** option, pdf, ps and dvi|
-|         |files are also removed. Files are removed from the|
-|         |given directory, the current directory by default.With|
-|         |the **--recursive** option, files are removed from|
-|         |subdirectories, too.|
+|   intro:|cltex removes tex auxiliary and intermediate files for|
+|         |all files with **.tex**, **.dtx** and **.ltx** extensions in|
+|         |the current directory. With the **--all** option, pdf,|
+|         |ps and dvi files are also removed. Files are removed|
+|         |from the given directory, the current directory by|
+|         |default. With the **--recursive** option, files are removed|
+|         |from subdirectories, too.|
 
 ## Options
 

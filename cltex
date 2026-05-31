@@ -19,11 +19,11 @@ cltex [options]	[directory]
 -r,--recursive	remove files recursively
 
 = Description
-cltex removes tex auxiliary/intermediate files for all TeX (|.tex, .dtx|
-and |.ltx|) files in the current directory. With the |--all| option, pdf,
-ps and dvi files are also removed. Files are removed from the given
-directory, the current directory by default.With the |--recursive| option,
-files are removed from subdirectories, too.
+cltex removes tex auxiliary and intermediate files for all files with
+|.tex|, |.dtx| and |.ltx| extensions in the current directory. With the
+|--all| option, pdf, ps and dvi files are also removed. Files are removed
+from the given directory, the current directory by default. With the
+|--recursive| option, files are removed from subdirectories, too.
 
 = Author
 [Wybo Dekker](wybodekker@me.com)
