@@ -1,14 +1,15 @@
 #!/bin/bash
-Version=0.02
+Version=0.03
 Myname=${0##*/}
 
-:<<'DOC'
+doc=$( cat \
+<<'DOC'
 = cltex - remove TeX auxiliary/intermediate files
 
 = Synopsis
 cltex [options]	[directory]	
 
-== Options
+= Options
 -h,--help	print short help and exit
 -H,--Help	print full documentation and exit
 -V,--version	print version and exit
@@ -30,22 +31,15 @@ files are removed from subdirectories, too.
 = Copyright
 Released under the [GNU General Public License](www.gnu.org/copyleft/gpl.html)
 DOC
-# --- colors ---------------------------------------------------------------
-Red='' Mag='' Nor='' nv="$Myname-${Version/./\\.} (press h for help, q to quit)"
-[ -t 1 ] && command -v tput >/dev/null && (( $(tput colors) >= 8 )) && { 
-  Red=$(tput bold && tput setaf 1) 
-  Mag=$(tput bold && tput setaf 5) 
-  Nor=$(tput sgr0)
-} 
-
-# --- utils ----------------------------------------------------------------
-    die() { local i; for i; do echo -e "$Myname: $Red$i$Nor"; done >&2; exit 1; } 
-   Warn() { local i; for i; do echo -e "$Myname: $Mag$i$Nor"; done >&2; } 
+)
+# --- colors, help from embedded doc, die and warn ---
+[ -t 1 ] && { Red=$'\e[1;31m' Mag=$'\e[1;35m' Nor=$'\e[0m'; } || Red='' Mag='' Nor=''
+nv="-$Myname-${Version/./\\.} (press h for help, q to quit)"
+helpsrt() { sed -n '/^= Synopsis/,/^= Desc/{//d;p}' <<<"$doc"; exit; }
+helpall() { less -P"$nv" <<<"$doc"; exit; }
+    die() { printf "%s$Nor\n" "${@/#/$Myname: $Red}" >&2; exit 1; }
+   Warn() { printf "%s$Nor\n" "${@/#/$Myname: $Mag}" >&2; }
    warn() { $verbose && Warn "$@"; }
-
-# --- help from embedded doc ----------------------------------------------
-helpsrt() { sed -n '/^= Synopsis/,/^= /p' "$0"|sed '1d;$d'; exit; } 
-helpall() { sed -n "/^:<<'DOC'$/,/^DOC/p" "$0"|sed '1d;$d'| less -P"$nv"; exit; }
 
 cleanext='{4ct,4dx,4ix,4tc,aux,bbl,blg,chk,ent,fls,glg,glo,gls,hd,idv,idx,\
 ilg,ind,ist,fdb_latexmk,latexmk,lg,lof,log,lot,out,soc,synctex.gz,t2d,tmp,\
@@ -58,7 +52,7 @@ options=$(getopt \
       -- "$@"
    ) || exit 1
 eval set -- "$options"
-verbose=false dryrun=false OPT='-maxdepth 1'
+verbose=false dryrun=false OPT=(-maxdepth 1)
 
 while true; do
    case $1 in
@@ -85,7 +79,7 @@ while true; do
          shift
          ;;
    (-r|--recursive)	# remove file recursively
-         OPT=''
+         OPT=()
          shift
          ;;
    (-I)  instscript "$0" ||
@@ -111,9 +105,9 @@ case $# in
 esac
 
 # tex sources to be cleaned:
-set -- $(eval "find . $OPT -name '*.tex' -o -name '*.dtx' -o -name '*.ltx'")
+mapfile -t files < <(find . "${OPT[@]}" -name '*.tex' -o -name '*.dtx' -o -name '*.ltx')
+set -- "${files[@]}"
 
-# beter hier eerst array vullen met te deleten files 
 if $dryrun; then
    Warn "These files will be deleted without the --dryrun option:"
    for i in "$@"; do
