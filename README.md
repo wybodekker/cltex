@@ -31,4 +31,4 @@ remove TeX auxiliary/intermediate files
 |-v,--verbose	|run verbosely|
 |-a,--all	|include pdf, dvi and ps files|
 |-d,--dryrun	|do a dry run: show what would be removed|
-|-r,--recursive	|remove file recursively|
+|-r,--recursive	|remove files recursively|

@@ -78,7 +78,7 @@ while true; do
          dryrun=true
          shift
          ;;
-   (-r|--recursive)	# remove file recursively
+   (-r|--recursive)	# remove files recursively
          OPT=()
          shift
          ;;
